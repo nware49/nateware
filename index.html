@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>nateware.md</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --radius: 12px;
+      --font-mono: 'JetBrains Mono', 'Menlo', 'Monaco', monospace;
+
+      /* light */
+      --bg-light: #f5f5f0;
+      --chrome-light: #e8e8e3;
+      --chrome-border-light: #d0d0c8;
+      --body-light: #1a1a1a;
+      --muted-light: #6b6b6b;
+      --faint-light: #9a9a9a;
+      --link-light: #0969da;
+      --heading-light: #111;
+      --rule-light: #d8d8d2;
+      --code-bg-light: #ececea;
+      --tag-bg-light: #e4f0ff;
+      --tag-color-light: #0969da;
+      --btn-bg-light: #1a1a1a;
+      --btn-color-light: #f5f5f0;
+      --input-bg-light: #fff;
+      --input-border-light: #d0d0c8;
+
+      /* dark */
+      --bg-dark: #1a1a1e;
+      --chrome-dark: #252529;
+      --chrome-border-dark: #333338;
+      --body-dark: #e8e8e3;
+      --muted-dark: #9a9a9a;
+      --faint-dark: #666;
+      --link-dark: #58a6ff;
+      --heading-dark: #f0f0ec;
+      --rule-dark: #333338;
+      --code-bg-dark: #2a2a2e;
+      --tag-bg-dark: #1c2d42;
+      --tag-color-dark: #58a6ff;
+      --btn-bg-dark: #e8e8e3;
+      --btn-color-dark: #1a1a1e;
+      --input-bg-dark: #222228;
+      --input-border-dark: #333338;
+    }
+
+    [data-theme="light"] {
+      --bg: var(--bg-light);
+      --chrome: var(--chrome-light);
+      --chrome-border: var(--chrome-border-light);
+      --body: var(--body-light);
+      --muted: var(--muted-light);
+      --faint: var(--faint-light);
+      --link: var(--link-light);
+      --heading: var(--heading-light);
+      --rule: var(--rule-light);
+      --code-bg: var(--code-bg-light);
+      --tag-bg: var(--tag-bg-light);
+      --tag-color: var(--tag-color-light);
+      --btn-bg: var(--btn-bg-light);
+      --btn-color: var(--btn-color-light);
+      --input-bg: var(--input-bg-light);
+      --input-border: var(--input-border-light);
+    }
+
+    [data-theme="dark"] {
+      --bg: var(--bg-dark);
+      --chrome: var(--chrome-dark);
+      --chrome-border: var(--chrome-border-dark);
+      --body: var(--body-dark);
+      --muted: var(--muted-dark);
+      --faint: var(--faint-dark);
+      --link: var(--link-dark);
+      --heading: var(--heading-dark);
+      --rule: var(--rule-dark);
+      --code-bg: var(--code-bg-dark);
+      --tag-bg: var(--tag-bg-dark);
+      --tag-color: var(--tag-color-dark);
+      --btn-bg: var(--btn-bg-dark);
+      --btn-color: var(--btn-color-dark);
+      --input-bg: var(--input-bg-dark);
+      --input-border: var(--input-border-dark);
+    }
+
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.7;
+      background: var(--bg);
+      color: var(--body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 64px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── WINDOW CHROME ── */
+    .window {
+      width: 100%;
+      max-width: 720px;
+      border-radius: var(--radius);
+      border: 1px solid var(--chrome-border);
+      overflow: hidden;
+      box-shadow:
+        0 1px 3px rgba(0,0,0,0.12),
+        0 8px 32px rgba(0,0,0,0.18),
+        0 0 0 0.5px rgba(0,0,0,0.08);
+    }
+
+    .titlebar {
+      background: var(--chrome);
+      border-bottom: 1px solid var(--chrome-border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      user-select: none;
+    }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-red    { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green  { background: #28c840; }
+
+    .filename {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+      letter-spacing: 0.02em;
+    }
+    .theme-toggle:hover { color: var(--body); background: var(--code-bg); }
+
+    /* ── LINE NUMBERS ── */
+    .editor {
+      display: flex;
+      background: var(--bg);
+    }
+
+    .gutter {
+      width: 44px;
+      background: var(--chrome);
+      border-right: 1px solid var(--chrome-border);
+      padding: 28px 0 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      flex-shrink: 0;
+    }
+
+    .ln {
+      font-size: 11px;
+      color: var(--faint);
+      line-height: 1.7;
+      height: 23.8px; /* matched to content line-height */
+      display: flex;
+      align-items: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── MARKDOWN CONTENT ── */
+    .content {
+      flex: 1;
+      padding: 28px 32px 40px;
+      min-width: 0;
+    }
+
+    /* headings */
+    .md-h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--heading);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .md-h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--heading);
+      margin-top: 32px;
+      margin-bottom: 8px;
+    }
+
+    .md-h2::before { content: '## '; color: var(--faint); }
+
+    .md-h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--heading);
+      margin-top: 24px;
+      margin-bottom: 6px;
+    }
+    .md-h3::before { content: '### '; color: var(--faint); }
+
+    /* frontmatter block */
+    .frontmatter {
+      border: 1px solid var(--chrome-border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      background: var(--code-bg);
+      font-size: 12px;
+    }
+    .frontmatter-fence {
+      color: var(--faint);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .frontmatter-fence:last-child { margin-bottom: 0; margin-top: 6px; }
+
+    .fm-row {
+      display: flex;
+      gap: 8px;
+      line-height: 1.8;
+    }
+    .fm-key   { color: var(--link); }
+    .fm-colon { color: var(--faint); }
+    .fm-val   { color: var(--body); }
+
+    /* paragraph */
+    .md-p {
+      color: var(--body);
+      margin-bottom: 16px;
+      line-height: 1.75;
+    }
+
+    /* inline code */
+    code {
+      background: var(--code-bg);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      color: var(--heading);
+    }
+
+    /* horizontal rule */
+    .md-hr {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 28px 0;
+    }
+
+    /* blockquote */
+    .md-blockquote {
+      border-left: 3px solid var(--link);
+      padding-left: 16px;
+      margin: 16px 0;
+      color: var(--muted);
+    }
+
+    /* links */
+    a {
+      color: var(--link);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+    a:hover { border-bottom-color: var(--link); }
+
+    /* lists */
+    .md-ul {
+      list-style: none;
+      margin-bottom: 16px;
+    }
+    .md-ul li {
+      padding-left: 16px;
+      position: relative;
+      line-height: 1.75;
+      color: var(--body);
+    }
+    .md-ul li::before {
+      content: '-';
+      position: absolute;
+      left: 0;
+      color: var(--faint);
+    }
+
+    /* tags / badges */
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .tag {
+      background: var(--tag-bg);
+      color: var(--tag-color);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+    }
+
+    /* social links */
+    .social-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 12px 0 20px;
+    }
+
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--chrome-border);
+      border-radius: 6px;
+      color: var(--body);
+      text-decoration: none;
+      font-size: 13px;
+      transition: background 0.15s, border-color 0.15s;
+      border-bottom: 1px solid var(--chrome-border);
+    }
+    .social-link:hover {
+      background: var(--code-bg);
+      border-color: var(--muted);
+    }
+
+    .social-icon {
+      font-size: 14px;
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .social-handle { color: var(--muted); font-size: 12px; }
+
+    /* email section */
+    .email-section {
+      margin-top: 8px;
+    }
+
+    .email-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .email-input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--body);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .email-input::placeholder { color: var(--faint); }
+    .email-input:focus { border-color: var(--link); }
+
+    .email-btn {
+      background: var(--btn-bg);
+      color: var(--btn-color);
+      border: none;
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .email-btn:hover { opacity: 0.8; }
+    .email-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .success-msg {
+      font-size: 12px;
+      color: #28c840;
+      margin-top: 8px;
+      display: none;
+    }
+    .success-msg.visible { display: block; }
+
+    /* footer note */
+    .md-comment {
+      color: var(--faint);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .md-comment::before { content: '<!-- '; }
+    .md-comment::after  { content: ' -->'; }
+
+    /* ── CURSOR BLINK ── */
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1em;
+      background: var(--muted);
+      vertical-align: text-bottom;
+      border-radius: 1px;
+      animation: blink 1.1s step-end infinite;
+      margin-left: 2px;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 540px) {
+      .social-grid { grid-template-columns: 1fr; }
+      .gutter { width: 32px; }
+      .content { padding: 20px 18px 32px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cursor { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="window" role="main">
+
+  <!-- Titlebar -->
+  <div class="titlebar">
+    <div class="dots" aria-hidden="true">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+    </div>
+    <span class="filename">nateware.md</span>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle color theme">
+      <span id="themeLabel">☀ light</span>
+    </button>
+  </div>
+
+  <!-- Editor -->
+  <div class="editor">
+
+    <!-- Gutter / line numbers -->
+    <div class="gutter" aria-hidden="true" id="gutter"></div>
+
+    <!-- Markdown content -->
+    <div class="content" id="mdContent">
+
+      <!-- Frontmatter -->
+      <div class="frontmatter">
+        <div class="frontmatter-fence">---</div>
+        <div class="fm-row"><span class="fm-key">author</span><span class="fm-colon">:</span><span class="fm-val">Nate</span></div>
+        <div class="fm-row"><span class="fm-key">handle</span><span class="fm-colon">:</span><span class="fm-val">@nateware.md</span></div>
+        <div class="fm-row"><span class="fm-key">status</span><span class="fm-colon">:</span><span class="fm-val">building in public</span></div>
+        <div class="fm-row"><span class="fm-key">last_commit</span><span class="fm-colon">:</span><span class="fm-val" id="lastCommit">—</span></div>
+        <div class="frontmatter-fence">---</div>
+      </div>
+
+      <!-- H1 -->
+      <h1 class="md-h1"># nateware<span class="cursor" aria-hidden="true"></span></h1>
+      <p class="md-p" style="margin-top:6px; color: var(--muted);">founder · builder · clauder</p>
+
+      <hr class="md-hr" />
+
+      <!-- About -->
+      <h2 class="md-h2">about</h2>
+      <p class="md-p">
+        I make things. Software and hardware, sometimes at the same time.
+      </p>
+
+      <div class="tag-row" aria-label="Topics">
+        <span class="tag">swift</span>
+        <span class="tag">ios</span>
+        <span class="tag">supabase</span>
+        <span class="tag">rfid</span>
+        <span class="tag">founder</span>
+        <span class="tag">building-in-public</span>
+      </div>
+
+      <hr class="md-hr" />
+
+      <!-- What I'm building -->
+      <h2 class="md-h2">currently shipping</h2>
+      <ul class="md-ul">
+        <li><a href="stealth.mode" target="_blank" rel="noopener">hidden</a> - in progress</li>
+        <li><code>markedIn</code> — Chrome extension for Markdown on LinkedIn</li>
+        <li>a 90-day dual-company experiment (software + hardware, simultaneously)</li>
+      </ul>
+
+      <hr class="md-hr" />
+
+      <!-- Find me -->
+      <h2 class="md-h2">find me</h2>
+      <div class="social-grid">
+        <a href="https://www.instagram.com/nateware.md" target="_blank" rel="noopener" class="social-link">
+          <span class="social-icon" aria-hidden="true">◈</span>
+          <span>Instagram</span>
+          <span class="social-handle">@nateware.md</span>
+        </a>
+        <a href="https://www.threads.com/@nateware.md" target="_blank" rel="noopener" class="social-link">
+          <span class="social-icon" aria-hidden="true">@</span>
+          <span>Threads</span>
+          <span class="social-handle">@nateware.md</span>
+        </a>
+        <a href="https://www.tiktok.com/@nateware.md" target="_blank" rel="noopener" class="social-link">
+          <span class="social-icon" aria-hidden="true">▷</span>
+          <span>TikTok</span>
+          <span class="social-handle">@nateware.md</span>
+        </a>
+        <a href="https://x.com/nateware_md" target="_blank" rel="noopener" class="social-link">
+          <span class="social-icon" aria-hidden="true">✕</span>
+          <span>X</span>
+          <span class="social-handle">@nateware_md</span>
+        </a>
+        <a href="https://github.com/nware49" target="_blank" rel="noopener" class="social-link" style="grid-column: span 2;">
+          <span class="social-icon" aria-hidden="true">⌥</span>
+          <span>GitHub</span>
+          <span class="social-handle">nware49</span>
+        </a>
+      </div>
+
+      <hr class="md-hr" />
+
+      <!-- Notify -->
+      <div class="email-section">
+        <h2 class="md-h2">stay in the loop</h2>
+        <p class="md-p">
+          I ship things periodically, but when I do it's worth knowing about.<br />
+          Drop your email and I'll reach out when something lands.
+        </p>
+
+        <div class="email-form">
+          <input
+            class="email-input"
+            type="email"
+            id="emailInput"
+            placeholder="you@example.com"
+            autocomplete="email"
+            aria-label="Your email address"
+          />
+          <button class="email-btn" id="submitBtn" onclick="handleSubmit()">notify me</button>
+        </div>
+        <p class="success-msg" id="successMsg" role="status">
+          ✓ saved. i'll reach out when something worth knowing drops.
+        </p>
+        <p class="md-comment" style="margin-top: 16px;">no spam. no newsletter cadence. just signal.</p>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /editor -->
+
+</div><!-- /window -->
+
+<script>
+  // ── THEME TOGGLE ──
+  const html = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  const label = document.getElementById('themeLabel');
+
+  // Respect system preference on load
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const saved = localStorage.getItem('theme');
+  const initial = saved || (prefersDark ? 'dark' : 'light');
+  setTheme(initial);
+
+  btn.addEventListener('click', () => {
+    setTheme(html.dataset.theme === 'dark' ? 'light' : 'dark');
+  });
+
+  function setTheme(t) {
+    html.dataset.theme = t;
+    label.textContent = t === 'dark' ? '☀ light' : '◗ dark';
+    localStorage.setItem('theme', t);
+  }
+
+  // ── LAST COMMIT DATE ──
+  const d = new Date();
+  const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  document.getElementById('lastCommit').textContent =
+    `${d.getFullYear()}-${months[d.getMonth()]}-${String(d.getDate()).padStart(2,'0')}`;
+
+  // ── LINE NUMBERS ──
+  function renderGutter() {
+    const content = document.getElementById('mdContent');
+    const gutter = document.getElementById('gutter');
+    const contentH = content.offsetHeight;
+    const lineH = 23.8;
+    const count = Math.ceil(contentH / lineH);
+
+    gutter.innerHTML = '';
+    for (let i = 1; i <= count; i++) {
+      const ln = document.createElement('div');
+      ln.className = 'ln';
+      ln.textContent = i;
+      gutter.appendChild(ln);
+    }
+  }
+
+  // run after fonts load + on resize
+  document.fonts.ready.then(renderGutter);
+  window.addEventListener('resize', renderGutter);
+
+  // ── SUPABASE CONFIG ──
+  const SUPABASE_URL = 'https://sdmepimcxpywqrlhvcub.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWVwaW1jeHB5d3FybGh2Y3ViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODk0NzAsImV4cCI6MjA5MDA2NTQ3MH0.YpSdRovwIAdA1Q49cGRGyeA37WRaF1UrTuwiDBg5QDY';
+
+  // ── EMAIL SUBMIT ──
+  async function handleSubmit() {
+    const input = document.getElementById('emailInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const msg = document.getElementById('successMsg');
+    const email = input.value.trim();
+
+    if (!email || !email.includes('@')) {
+      input.focus();
+      input.style.borderColor = '#ff5f57';
+      setTimeout(() => { input.style.borderColor = ''; }, 1200);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'saving...';
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (res.status === 409) {
+        input.disabled = true;
+        submitBtn.textContent = 'saved';
+        msg.textContent = "✓ you're already on the list.";
+        msg.classList.add('visible');
+        return;
+      }
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      input.disabled = true;
+      submitBtn.textContent = 'saved';
+      msg.textContent = "✓ saved. i'll reach out when something worth knowing drops.";
+      msg.classList.add('visible');
+
+    } catch (err) {
+      console.error('Supabase insert failed:', err);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'notify me';
+      input.style.borderColor = '#ff5f57';
+      msg.textContent = '✗ something went wrong — try again.';
+      msg.style.color = '#ff5f57';
+      msg.classList.add('visible');
+      setTimeout(() => {
+        input.style.borderColor = '';
+        msg.classList.remove('visible');
+      }, 3000);
+    }
+  }
+
+  document.getElementById('emailInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleSubmit();
+  });
+</script>
+
+</body>
+</html>
