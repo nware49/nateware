@@ -1,0 +1,96 @@
+name: Supabase Keepalive
+
+# Supabase free-tier projects pause after ~7 days without activity.
+# This workflow keeps the project warm by inserting a single, clearly-tagged
+# fake "waitlist" signup every 3 days, hitting the exact same REST endpoint the
+# website uses. The emails always contain one of the KEYWORDS below so they can
+# be filtered out on the database side (see supabase/keepalive-filter.sql).
+
+on:
+  schedule:
+    # 11:00 UTC every 3rd day of the month (1, 4, 7, ... 28, 31).
+    # Max gap between runs is ~3 days — comfortably under Supabase's 7-day window.
+    # The exact minute is randomized at runtime in the "Random delay" step below.
+    - cron: '0 11 */3 * *'
+  # Allow manual runs for testing (skips the random delay).
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - name: Random delay within the 11:00 hour
+        # Pick a random minute (0–59) of the 11 AM hour, but only for scheduled
+        # runs. Manual dispatches fire immediately.
+        if: github.event_name == 'schedule'
+        run: |
+          MINUTES=$(( RANDOM % 60 ))
+          echo "Delaying $MINUTES minute(s) so the insert lands at a random point in the 11:00 hour."
+          sleep "$(( MINUTES * 60 ))"
+
+      - name: Submit a keyword-tagged keepalive email
+        env:
+          # These default to the public values already shipped in index.html
+          # (the anon key is meant to be public). Override them with repo
+          # secrets if you'd rather not hardcode them.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://sdmepimcxpywqrlhvcub.supabase.co' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWVwaW1jeHB5d3FybGh2Y3ViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODk0NzAsImV4cCI6MjA5MDA2NTQ3MH0.YpSdRovwIAdA1Q49cGRGyeA37WRaF1UrTuwiDBg5QDY' }}
+        run: |
+          set -euo pipefail
+
+          # Keyword list — keep this in sync with supabase/keepalive-filter.sql.
+          # Every generated email contains exactly one of these in its local part,
+          # which is how the database tells fake keepalive signups apart from real
+          # ones. They're deliberately bot-flavored so a real human won't collide.
+          KEYWORDS=(
+            keepalive
+            heartbeat
+            pingbot
+            dbwake
+            cronwake
+            keepwarm
+            nosleepdb
+            botping
+            nullsignal
+            synthmail
+          )
+
+          # All generated emails use the reserved .invalid TLD, so they can never
+          # be a real, deliverable address — a second layer of safety on top of
+          # the keyword tag.
+          DOMAINS=(
+            keepalive.invalid
+            cron.invalid
+            ping.invalid
+            bot.invalid
+          )
+
+          KEYWORD="${KEYWORDS[$(( RANDOM % ${#KEYWORDS[@]} ))]}"
+          DOMAIN="${DOMAINS[$(( RANDOM % ${#DOMAINS[@]} ))]}"
+          # 8 random hex chars for uniqueness (avoids the 409 duplicate path).
+          SUFFIX="$(head -c 4 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+          EMAIL="${KEYWORD}.${SUFFIX}@${DOMAIN}"
+
+          echo "Inserting keepalive email: ${EMAIL}"
+
+          HTTP_CODE=$(curl -s -o /tmp/resp.txt -w '%{http_code}' \
+            -X POST "${SUPABASE_URL}/rest/v1/waitlist" \
+            -H "Content-Type: application/json" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Prefer: return=minimal" \
+            -d "{\"email\":\"${EMAIL}\"}")
+
+          echo "HTTP status: ${HTTP_CODE}"
+          cat /tmp/resp.txt || true
+
+          # 2xx = inserted, 409 = duplicate (still proves the DB responded).
+          if [ "${HTTP_CODE}" -ge 200 ] && [ "${HTTP_CODE}" -lt 300 ]; then
+            echo "Keepalive insert succeeded."
+          elif [ "${HTTP_CODE}" -eq 409 ]; then
+            echo "Duplicate email (409) — DB is awake, treating as success."
+          else
+            echo "Unexpected status ${HTTP_CODE} — failing so the run is visible."
+            exit 1
+          fi
