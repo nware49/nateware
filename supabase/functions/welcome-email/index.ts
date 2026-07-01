@@ -33,6 +33,9 @@ function looksLikeEmail(addr: string): boolean {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(addr);
 }
 
+// Public site URL used for the link in the email.
+const SITE_URL = "https://nware49.github.io/nateware/";
+
 function welcomeEmail(toName: string | null) {
   const subject = "welcome to nateware.md";
   const text = [
@@ -49,7 +52,7 @@ function welcomeEmail(toName: string | null) {
     "i read everything.",
     "",
     "— Nate",
-    "nateware.md",
+    SITE_URL,
   ].join("\n");
 
   const html = `
@@ -62,7 +65,7 @@ function welcomeEmail(toName: string | null) {
     <p>this note comes straight from my personal inbox, so feel free to just hit
        reply — tell me what you're working on, or what you'd want to see. i read
        everything.</p>
-    <p>— Nate<br/><a href="https://nateware.md">nateware.md</a></p>
+    <p>— Nate<br/><a href="${SITE_URL}">nateware.md</a></p>
   </div>`;
 
   return { subject, text, html };
