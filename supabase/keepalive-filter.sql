@@ -31,14 +31,19 @@ $$;
 
 -- 2. A view of only the *real* waitlist signups. Query this instead of the
 --    raw table when you want the genuine list.
-create or replace view public.real_waitlist as
+--    security_invoker = true makes the view run with the querying user's
+--    permissions & RLS (not the view creator's). Without it, Postgres/Supabase
+--    flags the view as SECURITY DEFINER, which would bypass the caller's RLS.
+create or replace view public.real_waitlist
+  with (security_invoker = true) as
 select *
 from public.waitlist
 where not public.is_keepalive_email(email);
 
 -- 3. (Optional) A view of just the keepalive inserts, handy for sanity-checking
 --    that the cron is actually running.
-create or replace view public.keepalive_waitlist as
+create or replace view public.keepalive_waitlist
+  with (security_invoker = true) as
 select *
 from public.waitlist
 where public.is_keepalive_email(email);
