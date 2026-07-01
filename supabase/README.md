@@ -43,46 +43,134 @@ The welcome email is sent *as* your Gmail account, so it needs an app password:
 
 ## 3. Deploy the Edge Function
 
-With the [Supabase CLI](https://supabase.com/docs/guides/cli):
+The Edge Function (`functions/welcome-email/index.ts`) is the code that actually
+sends the email. "Deploying" uploads it to Supabase's cloud so it runs whenever
+the webhook calls it. Two ways to do it — pick one:
+
+- **Option A — all in the browser (no CLI, no clone).** Fastest if you just want
+  it running.
+- **Option B — Supabase CLI.** Better if you'll edit the function often and want
+  it version-controlled from your machine.
+
+---
+
+### Option A — Do it in the Supabase dashboard (no CLI)
+
+1. **Create the function.** Dashboard → **Edge Functions** → **Deploy a new
+   function** → **Via editor**. Name it exactly `welcome-email`.
+2. **Paste the code.** Copy the entire contents of
+   `supabase/functions/welcome-email/index.ts` from this repo into the editor
+   (open the file on GitHub and copy it).
+3. **Turn off JWT verification.** In the function's settings, disable **Verify
+   JWT** (this is the dashboard equivalent of `--no-verify-jwt`). The
+   `WEBHOOK_SECRET` check is what protects it instead.
+4. **Deploy** the function.
+5. **Add the secrets.** Dashboard → **Edge Functions** → **Secrets** (or
+   **Project Settings → Edge Functions → Secrets**) → add these three:
+   - `GMAIL_USER` = your Gmail address
+   - `GMAIL_APP_PASSWORD` = the 16-char Google app password (spaces removed)
+   - `WEBHOOK_SECRET` = the same random string you put in the SQL trigger
+6. That's it — the SQL from step 1 (which you already run in the browser SQL
+   editor) is the other half. Skip to **step 4 (Test it)** below.
+
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically in the
+dashboard too — you don't add those.
+
+---
+
+### Option B — Supabase CLI
+
+#### 3a. Install the CLI (one time)
+
+The `supabase` command is a separate tool you install on your computer — it's
+not part of the website.
+
+- **macOS:** `brew install supabase/tap/supabase`
+- **Windows:** `scoop install supabase`
+- **Anywhere with Node:** skip installing and prefix every command below with
+  `npx`, e.g. `npx supabase login`.
+
+No Docker required — deploying runs in the cloud, not locally.
+
+#### 3b. Open a terminal in this repo
+
+`cd` into your cloned `nateware` folder (the one containing this `supabase/`
+directory). The CLI reads the function code from here.
+
+#### 3c. Run the commands
 
 ```bash
+# 1. Authenticate the CLI to your Supabase account (opens a browser once).
 supabase login
+
+# 2. Link THIS folder to your hosted project. The "project ref" is the
+#    subdomain of your Supabase URL: https://<ref>.supabase.co
+#    (may prompt for your database password).
 supabase link --project-ref sdmepimcxpywqrlhvcub
 
-# Store the secrets (never commit these):
+# 3. Store the function's secrets (encrypted on Supabase, never in git).
+#    See the table below for what each one is.
 supabase secrets set \
   GMAIL_USER="nathanbaseball49@gmail.com" \
   GMAIL_APP_PASSWORD="your-16-char-app-password" \
   WEBHOOK_SECRET="the-same-random-string-from-the-sql-trigger"
 
-# Deploy. --no-verify-jwt lets the DB webhook reach it; the function is still
-# protected by the WEBHOOK_SECRET shared-secret header.
+# 4. Upload the function and make it live at
+#    https://<ref>.supabase.co/functions/v1/welcome-email
 supabase functions deploy welcome-email --no-verify-jwt
 ```
 
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically — you
-don't set those.
+**What the secrets are:**
+
+| Secret | What it is |
+| --- | --- |
+| `GMAIL_USER` | The Gmail address you send *from*. |
+| `GMAIL_APP_PASSWORD` | The 16-char Google **app password** from step 2 — not your normal login password. Strip the spaces Google shows. |
+| `WEBHOOK_SECRET` | Any random string, but it **must exactly match** the `x-webhook-secret` value in your SQL trigger, or every call is rejected with 401. |
+
+**Why `--no-verify-jwt`?** By default Supabase rejects any caller that doesn't
+present a valid login token (JWT). The database webhook doesn't send one, so
+this flag turns that check off — and *that's why* the function verifies
+`WEBHOOK_SECRET` itself. The secret header is the replacement lock.
+
+**What you DON'T set:** `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are
+injected into every Edge Function automatically. The function uses them to write
+the `welcomed_at` stamp back to the table. (The service-role key can bypass all
+security rules, which is exactly why it stays server-side in the function and
+never touches the website.)
 
 ---
 
 ## 4. Test it
 
-Insert a real-looking row (use a domain that isn't `.invalid` and doesn't
-contain a keepalive keyword) from the SQL editor:
+A live smoke test: pretend to be a signup and confirm the whole chain fires
+(insert → trigger → webhook → function → Gmail).
+
+**1. Insert a fake-but-valid row** in the SQL editor. It must NOT look like a
+keepalive fake, so use a normal domain (no `.invalid`, no keepalive keyword) —
+ideally a second inbox you own so you can see the email land:
 
 ```sql
 insert into public.waitlist (email) values ('your-other-inbox@gmail.com');
 ```
 
-Within a few seconds you should get the welcome email, your Gmail **Sent**
-folder should show it, and the row's `welcomed_at` should be set:
+**2. Within a few seconds you should see three things:**
+
+- the welcome email in that inbox,
+- a copy in your Gmail **Sent** folder (proof it went from your account),
+- the row's `welcomed_at` filled in:
 
 ```sql
 select email, welcomed_at from public.waitlist order by welcomed_at desc nulls last;
 ```
 
-Function logs are under **Edge Functions → welcome-email → Logs** if anything
-doesn't fire.
+**3. If nothing arrives,** check **Edge Functions → welcome-email → Logs** in the
+dashboard. Most common causes:
+
+- **401 in the logs** → `WEBHOOK_SECRET` doesn't match the value in the SQL trigger.
+- **SMTP send failed** → wrong/rotated Gmail app password.
+- **No email at all** → 2-Step Verification isn't enabled on the Google account
+  (app passwords require it).
 
 ---
 
