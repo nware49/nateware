@@ -22,9 +22,9 @@ Files:
 In the Supabase dashboard → **SQL editor**, run:
 
 1. `keepalive-filter.sql`
-2. `welcome-email.sql` — **first** edit the `x-webhook-secret` header value in
-   the trigger to a random string you choose (you'll reuse it as
-   `WEBHOOK_SECRET` below).
+2. `welcome-email.sql` — **first** replace `REPLACE_WITH_YOUR_WEBHOOK_SECRET`
+   (marked with ▼▼▼ in the file) with a random string you choose. You'll reuse
+   the exact same string as `WEBHOOK_SECRET` below.
 
 > `welcome-email.sql` depends on `is_keepalive_email()` from
 > `keepalive-filter.sql`, so run them in that order.
