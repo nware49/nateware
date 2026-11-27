@@ -327,6 +327,24 @@
       font-size: 12px;
     }
 
+    /* projects */
+    .project + .project { margin-top: 24px; }
+    .project-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 2px 10px;
+      margin-bottom: 6px;
+    }
+    .project-head .md-h3 { margin: 0; }
+    .project-url {
+      font-size: 12px;
+      color: var(--faint);
+      overflow-wrap: anywhere;
+    }
+    .project .md-p { margin-bottom: 10px; }
+    .project .tag-row { margin-bottom: 0; }
+
     /* social links */
     .social-grid {
       display: grid;
@@ -521,6 +539,58 @@
         <li><code>markedIn</code> — Chrome extension for Markdown on LinkedIn</li>
         <li>a 90-day dual-company experiment (software + hardware, simultaneously)</li>
       </ul>
+
+      <hr class="md-hr" />
+
+      <!-- Shipped projects -->
+      <h2 class="md-h2">shipped</h2>
+
+      <div class="project">
+        <div class="project-head">
+          <h3 class="md-h3"><a href="https://codedrillion.com/" target="_blank" rel="noopener">code drillion</a></h3>
+          <span class="project-url">codedrillion.com</span>
+        </div>
+        <p class="md-p">
+          A daily trivia drill for software engineers. Obvious answers barely scratch the topsoil; deep cuts drill you toward the center of the Earth, and every drill shows what a pure autocomplete would have scored. Claude writes and fact-checks new questions each week, and every daily puzzle ships through a reviewed pull request.
+        </p>
+        <div class="tag-row">
+          <span class="tag">javascript</span>
+          <span class="tag">pixel-art</span>
+          <span class="tag">claude-api</span>
+          <span class="tag">github-actions</span>
+        </div>
+      </div>
+
+      <div class="project">
+        <div class="project-head">
+          <h3 class="md-h3"><a href="https://nware49.github.io/umsbc-tabling-scheduler/" target="_blank" rel="noopener">umsbc tabling scheduler</a></h3>
+          <span class="project-url">nware49.github.io/umsbc-tabling-scheduler</span>
+        </div>
+        <p class="md-p">
+          Turns a club board's availability form into a fair weekly tabling schedule and a ready-to-share Excel file, with reminder emails and calendar invites. The Python scheduler runs in the browser with Pyodide, so nobody's data leaves their computer.
+        </p>
+        <div class="tag-row">
+          <span class="tag">python</span>
+          <span class="tag">pyodide</span>
+          <span class="tag">apps-script</span>
+          <span class="tag">github-pages</span>
+        </div>
+      </div>
+
+      <div class="project">
+        <div class="project-head">
+          <h3 class="md-h3"><a href="https://nware49.github.io/wurld-kup/" target="_blank" rel="noopener">wurld kup '26</a></h3>
+          <span class="project-url">nware49.github.io/wurld-kup</span>
+        </div>
+        <p class="md-p">
+          A World Cup 2026 bracket pool for friends and family, run entirely out of one GitHub repo with no database or server. Brackets arrive as GitHub issues, Actions validate and commit them, live scores come in from football-data.org, and the leaderboard is computed in the browser.
+        </p>
+        <div class="tag-row">
+          <span class="tag">javascript</span>
+          <span class="tag">github-actions</span>
+          <span class="tag">github-pages</span>
+        </div>
+      </div>
 
       <hr class="md-hr" />
 
