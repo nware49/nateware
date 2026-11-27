@@ -380,67 +380,6 @@
 
     .social-handle { color: var(--muted); font-size: 12px; }
 
-    /* email section */
-    .email-section {
-      margin-top: 8px;
-    }
-
-    .email-form {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-
-    .email-input {
-      flex: 1;
-      min-width: 200px;
-      background: var(--input-bg);
-      border: 1px solid var(--input-border);
-      border-radius: 6px;
-      padding: 9px 12px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--body);
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .email-input::placeholder { color: var(--faint); }
-    .email-input:focus { border-color: var(--link); }
-
-    .email-btn {
-      background: var(--btn-bg);
-      color: var(--btn-color);
-      border: none;
-      border-radius: 6px;
-      padding: 9px 18px;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity 0.15s;
-      white-space: nowrap;
-    }
-    .email-btn:hover { opacity: 0.8; }
-    .email-btn:disabled { opacity: 0.5; cursor: default; }
-
-    .success-msg {
-      font-size: 12px;
-      color: #28c840;
-      margin-top: 8px;
-      display: none;
-    }
-    .success-msg.visible { display: block; }
-
-    /* footer note */
-    .md-comment {
-      color: var(--faint);
-      font-size: 12px;
-      margin-top: 8px;
-    }
-    .md-comment::before { content: '<!-- '; }
-    .md-comment::after  { content: ' -->'; }
-
     /* ── CURSOR BLINK ── */
     .cursor {
       display: inline-block;
@@ -629,33 +568,6 @@
         </a>
       </div>
 
-      <hr class="md-hr" />
-
-      <!-- Notify -->
-      <div class="email-section">
-        <h2 class="md-h2">stay in the loop</h2>
-        <p class="md-p">
-          I ship things periodically, but when I do it's worth knowing about.<br />
-          Drop your email and I'll reach out when something lands.
-        </p>
-
-        <div class="email-form">
-          <input
-            class="email-input"
-            type="email"
-            id="emailInput"
-            placeholder="you@example.com"
-            autocomplete="email"
-            aria-label="Your email address"
-          />
-          <button class="email-btn" id="submitBtn" onclick="handleSubmit()">notify me</button>
-        </div>
-        <p class="success-msg" id="successMsg" role="status">
-          ✓ saved. i'll reach out when something worth seeing is ready for your eyes.
-        </p>
-        <p class="md-comment" style="margin-top: 16px;">no spam. no newsletter cadence. pinky promise!</p>
-      </div>
-
     </div><!-- /content -->
   </div><!-- /editor -->
 
@@ -709,73 +621,6 @@
   // run after fonts load + on resize
   document.fonts.ready.then(renderGutter);
   window.addEventListener('resize', renderGutter);
-
-  // ── SUPABASE CONFIG ──
-  const SUPABASE_URL = 'https://sdmepimcxpywqrlhvcub.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWVwaW1jeHB5d3FybGh2Y3ViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODk0NzAsImV4cCI6MjA5MDA2NTQ3MH0.YpSdRovwIAdA1Q49cGRGyeA37WRaF1UrTuwiDBg5QDY';
-
-  // ── EMAIL SUBMIT ──
-  async function handleSubmit() {
-    const input = document.getElementById('emailInput');
-    const submitBtn = document.getElementById('submitBtn');
-    const msg = document.getElementById('successMsg');
-    const email = input.value.trim();
-
-    if (!email || !email.includes('@')) {
-      input.focus();
-      input.style.borderColor = '#ff5f57';
-      setTimeout(() => { input.style.borderColor = ''; }, 1200);
-      return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'saving...';
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ email })
-      });
-
-      if (res.status === 409) {
-        input.disabled = true;
-        submitBtn.textContent = 'saved';
-        msg.textContent = "✓ you're already on the list.";
-        msg.classList.add('visible');
-        return;
-      }
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      input.disabled = true;
-      submitBtn.textContent = 'saved';
-      msg.textContent = "✓ saved. i'll reach out when something worth knowing drops.";
-      msg.classList.add('visible');
-
-    } catch (err) {
-      console.error('Supabase insert failed:', err);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'notify me';
-      input.style.borderColor = '#ff5f57';
-      msg.textContent = '✗ something went wrong — try again.';
-      msg.style.color = '#ff5f57';
-      msg.classList.add('visible');
-      setTimeout(() => {
-        input.style.borderColor = '';
-        msg.classList.remove('visible');
-      }, 3000);
-    }
-  }
-
-  document.getElementById('emailInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleSubmit();
-  });
 </script>
 
 </body>
